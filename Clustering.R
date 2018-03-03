@@ -4,7 +4,7 @@
 
 # Exercise 0: Install these packages if you don't have them already
 
-# install.packages(c("cluster", "rattle.data","NbClust"))
+install.packages(c("cluster", "rattle.data","NbClust"))
 
 # Now load the data and look at the first few rows
 data(wine, package="rattle.data")
@@ -13,6 +13,8 @@ head(wine)
 # Exercise 1: Remove the first column from the data and scale
 # it using the scale() function
 
+wineScaled = wine[, 2:14]
+wineScaled = scale(wine)
 
 # Now we'd like to cluster the data using K-Means. 
 # How do we decide how many clusters to use if you don't know that already?
@@ -23,16 +25,16 @@ head(wine)
 # graph can suggest the appropriate number of clusters. 
 
 wssplot <- function(data, nc=15, seed=1234){
-	              wss <- (nrow(data)-1)*sum(apply(data,2,var))
+	              wss <- (nrow(wineScaled)-1)*sum(apply(wineScaled,2,var))
                	      for (i in 2:nc){
 		        set.seed(seed)
-	                wss[i] <- sum(kmeans(data, centers=i)$withinss)}
+	                wss[i] <- sum(kmeans(wineScaled, centers=i)$withinss)}
 	                
 		      plot(1:nc, wss, type="b", xlab="Number of Clusters",
 	                        ylab="Within groups sum of squares")
 	   }
 
-wssplot(df)
+wssplot(data = wineScaled, nc = 10)
 
 # Exercise 2:
 #   * How many clusters does this method suggest?
@@ -44,7 +46,7 @@ wssplot(df)
 
 library(NbClust)
 set.seed(1234)
-nc <- NbClust(df, min.nc=2, max.nc=15, method="kmeans")
+nc <- NbClust(wineScaled, min.nc=2, max.nc=15, method="kmeans")
 barplot(table(nc$Best.n[1,]),
 	          xlab="Numer of Clusters", ylab="Number of Criteria",
 		            main="Number of Clusters Chosen by 26 Criteria")
@@ -57,7 +59,7 @@ barplot(table(nc$Best.n[1,]),
 # using this number of clusters. Output the result of calling kmeans()
 # into a variable fit.km
 
-# fit.km <- kmeans( ... )
+fit.km <- kmeans(wineScaled, centers = 3)
 
 # Now we want to evaluate how well this clustering does.
 
@@ -65,9 +67,11 @@ barplot(table(nc$Best.n[1,]),
 # compares to the actual wine types in wine$Type. Would you consider this a good
 # clustering?
 
+table(fit.km$cluster, wine$Type)
 
 # Exercise 6:
 # * Visualize these clusters using  function clusplot() from the cluster library
 # * Would you consider this a good clustering?
 
-#clusplot( ... )
+
+clusplot(x = wineScaled, clus = fit.km$cluster)
